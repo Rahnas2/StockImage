@@ -29,17 +29,17 @@ export class Token{
         }
     }
 
-    verifyAccessToken(accessToken: string) {
+    verifyAccessToken(accessToken: string): TokenPayload {
         try {
-            return jwt.verify(accessToken, this.ACCESS_TOKEN_SECRET)
+            return jwt.verify(accessToken, this.ACCESS_TOKEN_SECRET) as TokenPayload
         } catch (error) {
             throw new UnauthorizedError('invalid or expired token')
         }
     }
 
-    verifyRefreshToken(refreshToken: string) {
+    verifyRefreshToken(refreshToken: string): TokenPayload {
         try {
-            return jwt.verify(refreshToken, this.ACCESS_TOKEN_SECRET)
+            return jwt.verify(refreshToken, this.ACCESS_TOKEN_SECRET) as TokenPayload
         } catch (error) {
             throw new UnauthorizedError('invalid or expired token')
         }

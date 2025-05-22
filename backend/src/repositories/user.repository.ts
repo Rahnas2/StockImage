@@ -5,7 +5,7 @@ import userModel from "../models/users";
 
 export class userRepository implements IUserRepository {
 
-    async create(data: User): Promise<User> {
+    async create(data: Partial<User>): Promise<User> {
         try {
             return await userModel.create(data)
         } catch (error) {
