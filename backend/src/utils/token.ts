@@ -17,7 +17,7 @@ export class Token{
         return jwt.sign(payload, this.ACCESS_TOKEN_SECRET, { expiresIn: '15m' })
     }
 
-    generateRefreshToken(payload: object) {
+    generateRefreshToken(payload: TokenPayload) {
         return jwt.sign(payload, this.REFRESH_TOKEN_SECRET, { expiresIn: '7d' })
     }
 
@@ -39,9 +39,9 @@ export class Token{
 
     verifyRefreshToken(refreshToken: string): TokenPayload {
         try {
-            return jwt.verify(refreshToken, this.ACCESS_TOKEN_SECRET) as TokenPayload
+            return jwt.verify(refreshToken, this.REFRESH_TOKEN_SECRET) as TokenPayload
         } catch (error) {
-            throw new UnauthorizedError('invalid or expired token')
+            throw new UnauthorizedError('Unauthorized')
         }
     }
 

@@ -11,13 +11,12 @@ router.route('/')
 .put(authMiddleware.verifyToken, upload.single('image'), uploadController.updateUpload)
 .delete(authMiddleware.verifyToken, uploadController.deleteUpload)   
 
+router.put('/reorder', authMiddleware.verifyToken, uploadController.reorderUploads)
 
 router.get('/:id', authMiddleware.verifyToken, uploadController.getUploadWithId);      
        
+   
 
-// router.patch('/:id');    
-// router.delete('/:id');    
 
-// router.put('/reorder')
 
 export default router

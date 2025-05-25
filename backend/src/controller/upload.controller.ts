@@ -10,6 +10,7 @@ export class UploadController {
 
     getUploads = async (req: AuthRequest, res: Response, next: NextFunction) => {
         try {
+            console.log('hello ')
             const user = req.user
 
             const uploads = await this.uploadService.getUploads(user as string)
@@ -30,11 +31,11 @@ export class UploadController {
         }
     }
 
-    createUpload = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    createUpload = async (req: AuthRequest, res: Response, next: NextFunction) => {   
         try {
-            const user = req.user
+            const user = req.user  
 
-            const { title } = req.body
+            const { title } = req.body       
             const image = req.file
 
             if (!image || !title) {
@@ -49,8 +50,10 @@ export class UploadController {
         }
     }
 
-    updateUpload = async (req: Request, res: Response, next: NextFunction) => {
+    updateUpload = async (req: AuthRequest, res: Response, next: NextFunction) => {
         try {
+
+            const user = req.user
             const { _id, title } = req.body
 
             const image = req.file
@@ -61,7 +64,7 @@ export class UploadController {
                 throw new BadRequestError('_id is required')
             }
 
-            const upload = await this.uploadService.updateUpload(_id, title, image)
+            const upload = await this.uploadService.updateUpload(user as string, _id, title, image)
 
             res.status(HttpStatusCode.OK).json({message: 'success', upload})
         } catch (error) {
@@ -72,8 +75,21 @@ export class UploadController {
     deleteUpload = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { _id } = req.query
-            await this.uploadService.deleteUpload(_id as string)
-            res.status(HttpStatusCode.OK).json({ message: 'success' })
+            const upload = await this.uploadService.deleteUpload(_id as string)
+            res.status(HttpStatusCode.OK).json({ message: 'success', upload })
+        } catch (error) {
+            next(error)
+        }
+    } 
+
+    reorderUploads = async (req: AuthRequest, res: Response, next: NextFunction) => {
+        try {
+            const { uploads } = req.body
+            const user = req.user
+
+            await this.uploadService.reorderUploads(user as string, uploads)
+
+            res.status(HttpStatusCode.OK).json({message: 'success'})   
         } catch (error) {
             next(error)
         }

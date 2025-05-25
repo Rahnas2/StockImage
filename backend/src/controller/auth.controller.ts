@@ -1,6 +1,7 @@
 import { Request, Response ,NextFunction } from "express";
 import { AuthService } from "../services/auth.service";
 import { HttpStatusCode } from "../utils/statusCode";
+import { UnauthorizedError } from "../utils/errors";
 
 export class AuthController {
     constructor(private authService: AuthService) {}
@@ -10,6 +11,7 @@ export class AuthController {
             const {email, password} = req.body
 
             const { accessToken, refreshToken } = await this.authService.login(email, password)
+            console.log('refresh token after login ', refreshToken)
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
@@ -44,11 +46,9 @@ export class AuthController {
             const { token } = req.query
 
             await this.authService.verifyEmail(token as string)
-            console.log('hello..')
-            res.status(HttpStatusCode.OK).json({message: 'Email Verified'})   
-
+            res.redirect(HttpStatusCode.REDIRECT, `${process.env.CLIENT_URI}/email-verified?status=success&message=verified`)
         } catch (error) {   
-            next(error)
+            res.redirect(HttpStatusCode.REDIRECT, `${process.env.CLIENT_URI}/email-verified?status=failed&message=failed`)
         }
     }
 
@@ -77,9 +77,34 @@ export class AuthController {
 
     resetPassword = async(req: Request, res: Response, next: NextFunction) => {
         try {
-            const { email, newPassword } = req.body
+            const { otp, email, newPassword } = req.body
 
-            await this.authService.resetPassword(email, newPassword)     
+            await this.authService.resetPassword(otp, email, newPassword)     
+            res.status(HttpStatusCode.OK).json({message: 'success'})
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    refreshToken = async(req: Request, res: Response, next: NextFunction) => {
+        try {
+            const refreshToken = req.cookies.refreshToken
+            console.log('refesh token', refreshToken)
+            if(!refreshToken) {
+                throw new UnauthorizedError('Unauthorized')
+            }
+
+            const accessToken = await this.authService.refreshToken(refreshToken)
+
+            res.status(HttpStatusCode.OK).json({message: 'success', accessToken})
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    logout = async(req: Request, res: Response, next: NextFunction) => {
+        try {
+            res.clearCookie('refreshToken')
             res.status(HttpStatusCode.OK).json({message: 'success'})
         } catch (error) {
             next(error)

@@ -37,5 +37,11 @@ export class Mailer {
                 </div>
     `,
         }
+
+        try {
+            await transporter.sendMail(mailOption)
+        } catch (error) {  
+            throw new InternalServerError('Error sending Eamil')
+        }
     }
 }

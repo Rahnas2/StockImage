@@ -63,7 +63,7 @@ export class AuthService {
         const verificationToken = this.token.generateToken(user._id as string)
         console.log('verificaion token ', verificationToken)
 
-        const verificationLink = `http://localhost:5050/api/auth/verify-email?token=${verificationToken}`
+        const verificationLink = `${process.env.BACKEND_URI}/api/auth/verify-email?token=${verificationToken}`
 
         await this.mailer.sendVerificationMail(email, verificationLink)
     }
@@ -71,7 +71,7 @@ export class AuthService {
 
     async verifyEmail(token: string) {
 
-        const Token = await this.token.verifyToken(token) as Omit<TokenPayload, 'email'>
+        const Token = this.token.verifyToken(token) as Omit<TokenPayload, 'email'>
 
         const userId = Token.userId
 
@@ -82,7 +82,7 @@ export class AuthService {
         }
     }
 
-    async sendOtp(email: string) {
+    async sendOtp(email: string) {    
         const user = await this.userRepository.findByEmail(email)
 
         if (!user) {
@@ -91,7 +91,7 @@ export class AuthService {
 
         // Generate Otp 
         const otp = generateOTP()
-        console.log('otp')
+        console.log('otp', otp)
 
         await this.mailer.sendOtp(user.email, otp)
 
@@ -124,15 +124,37 @@ export class AuthService {
         }
     }
 
-    async resetPassword(email: string, password: string) {
+    async resetPassword(otp: string, email: string, password: string) {
         const user = await this.userRepository.findByEmail(email)
         if(!user){
             throw new UnauthorizedError('user not found')
         }
 
+        //Otp Verification 
+        const Otp = await this.otpRepository.findByEmail(email)
+
+        if(!Otp || Otp.expireAt < new Date){
+            throw new UnauthorizedError('Invalid or Expire OTP')
+        }
+
+        const isMatch = await Bcrypt.compare(otp, Otp.otp)
+
+        if(!isMatch){
+            throw new UnauthorizedError('Invalid Otp')
+        }
+
+        // Hansh password and Update 
         const hashedPassword = await Bcrypt.hash(password)
         
         await this.userRepository.findByIdAndUpdate(user._id, {password: hashedPassword}) 
+    }
+
+    async refreshToken(refreshToken: string) {
+        const Token = this.token.verifyRefreshToken(refreshToken)
+
+        const accessToken = this.token.genereteAccessToken({ userId: Token.userId as string, email: Token.email })
+
+        return accessToken
     }
 
 

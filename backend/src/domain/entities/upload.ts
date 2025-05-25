@@ -4,5 +4,5 @@ export interface Upload {
     title: string,
     image: string,
     imagePublicId: string,
-    position?: string
+    position?: number
 }

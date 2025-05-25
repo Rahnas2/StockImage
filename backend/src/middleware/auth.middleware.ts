@@ -7,6 +7,7 @@ export class AuthMiddleware {
     constructor(private token: Token) {}
     verifyToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
         try {
+            console.log('start verifying token ')
             const authorization = req.header("Authorization");
 
             if (!authorization || !authorization.startsWith('Bearer')) {

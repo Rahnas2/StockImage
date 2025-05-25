@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Upload } from "../domain/entities/upload";
 import { IUplaodRepository } from "../domain/interfaces/IUploadRepository";
 import uploadModel from "../models/uploads";
@@ -6,7 +7,7 @@ export class uploadRepository implements IUplaodRepository {
 
     async findAll(data: Partial<Upload>): Promise<Upload[]> {
         try {
-            return await uploadModel.find(data).sort({createdAt: -1})
+            return await uploadModel.find(data).sort({ position: -1 })
         } catch (error) {
             throw new Error('data base error')
         }
@@ -24,7 +25,19 @@ export class uploadRepository implements IUplaodRepository {
         try {
             return await uploadModel.findOne({
                 user,
-                title: { $regex: new RegExp(`^${title}$`, 'i') } 
+                title: { $regex: new RegExp(`^${title}$`, 'i') }
+            })
+        } catch (error) {
+            throw new Error('data base error')
+        }
+    }
+
+    async findByUserIdAndTitleAndExcludeId(user: string, title: string, _id: string): Promise<Upload | null> {
+        try {
+            return await uploadModel.findOne({
+                _id: { $ne: _id },
+                user,
+                title: { $regex: new RegExp(`^${title}$`, 'i') }
             })
         } catch (error) {
             throw new Error('data base error')
@@ -41,9 +54,9 @@ export class uploadRepository implements IUplaodRepository {
 
     async findByIdAndUpdate(_id: string, data: Partial<Upload>): Promise<Upload | null> {
         try {
-            return await uploadModel.findByIdAndUpdate(_id, data, {new: true})
+            return await uploadModel.findByIdAndUpdate(_id, data, { new: true })
         } catch (error) {
-            throw new Error('data base error')
+            throw new Error(`data base error, ${error}`)
         }
     }
 
@@ -54,6 +67,24 @@ export class uploadRepository implements IUplaodRepository {
             console.log('error deleting upload ', error)
             throw new Error('data base error')
         }
+    }
+
+    async getLastPosition(user: string): Promise<number> {
+        const result = await uploadModel.aggregate([
+            {
+                $match: {
+                    user: new mongoose.Types.ObjectId(user)
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    lastPosition: { $max: "$position" }
+                }
+            }
+        ]);
+
+        return result[0]?.lastPosition ?? -1;
     }
 
 }

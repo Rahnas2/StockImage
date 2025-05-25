@@ -17,7 +17,7 @@ export class userRepository implements IUserRepository {
         try {
             return await userModel.findOne({email})
         } catch (error) {
-            throw new Error('data base error')
+            throw new Error(`data base error ${error}`)
         }
     }
 

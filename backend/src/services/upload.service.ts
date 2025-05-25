@@ -1,8 +1,7 @@
 import { Upload } from "../domain/entities/upload";
 import { uploadRepository } from "../repositories/upload.repository";
 import { CloudinaryService } from "../utils/cloudinayService";
-import { BadRequestError, NotFoundError } from "../utils/errors";
-import { HttpStatusCode } from "../utils/statusCode";
+import { BadRequestError, ConflictError, NotFoundError } from "../utils/errors";
 
 export class UploadService {
 
@@ -26,19 +25,20 @@ export class UploadService {
     async createUpload(user: string, title: string, file: Express.Multer.File) {
 
         const existingUpload = await this.uploadRepository.findByUserIdAndTitle(user, title)
-        if(existingUpload){
+        if (existingUpload) {
             throw new BadRequestError('already in use')
         }
 
+        const lastPosition = await this.uploadRepository.getLastPosition(user)
+
         const { url, publicId } = await this.cloudinaryService.uploadImage(file.buffer, 'uploads')
 
-        const upload = await this.uploadRepository.create({ user, title, image: url, imagePublicId: publicId })
+        const upload = await this.uploadRepository.create({ user, title, image: url, imagePublicId: publicId, position: lastPosition + 1 })
         return upload
     }
 
-    async updateUpload(_id: string, title?: string, file?: Express.Multer.File) {
+    async updateUpload(user: string, _id: string, title?: string, file?: Express.Multer.File) {
 
-        console.log('file here ', file)
 
         const existingUpload = await this.uploadRepository.findById(_id)
         if (!existingUpload) {
@@ -56,6 +56,11 @@ export class UploadService {
         }
 
         if (title) {
+            const existingUploadByTitle = await this.uploadRepository.findByUserIdAndTitleAndExcludeId(user, title, _id)
+            if(existingUploadByTitle){
+                throw new ConflictError('already in use')
+            }
+
             updateData.title = title
         }
 
@@ -67,11 +72,34 @@ export class UploadService {
     }
 
     async deleteUpload(_id: string) {
-        const result = await this.uploadRepository.findByIdAndDelete(_id)   
+        const result = await this.uploadRepository.findByIdAndDelete(_id)
         if (!result) {
             throw new NotFoundError('Incorrect _id')
         }
 
         await this.cloudinaryService.deleteImage(result.imagePublicId)
+
+        return result
+    }
+
+    async reorderUploads(user: string, uploads: Partial<Upload>[]) {
+        if (uploads.length < 1) {
+            throw new BadRequestError('Uploads array must contain at least one item.');   
+        }
+
+        const positions = uploads.map(upload => upload.position);
+        const uniquePositions = new Set(positions);
+
+        if (positions.length !== uniquePositions.size) {
+            throw new BadRequestError('Invalid or duplicate position values.');
+        }
+
+        const updatePromises = uploads.map(upload => {
+            return this.uploadRepository.findByIdAndUpdate(upload._id as string, {
+                position: upload.position
+            });
+        });
+
+        await Promise.all(updatePromises);
     }
 }
