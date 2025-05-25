@@ -13,6 +13,7 @@ export class AuthController {
             const { accessToken, refreshToken } = await this.authService.login(email, password)
             console.log('refresh token after login ', refreshToken)
 
+            console.log('node env ', process.env.NODE_ENV)
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV  === 'production',

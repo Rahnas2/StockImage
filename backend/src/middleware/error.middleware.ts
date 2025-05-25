@@ -7,10 +7,10 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
     if (err instanceof NotFoundError) {
         res.status(HttpStatusCode.NOT_FOUND).json({ message: err.message })
         return
-    }
+    }    
 
     if (err instanceof BadRequestError) {
-        console.log('came herer...',)
+        console.log('came herer...',)  
         res.status(HttpStatusCode.BAD_REQUEST).json({ message: err.message })
         return
     }
