@@ -65,8 +65,8 @@ const Uploads: React.FC<Props> = ({ uploads, onEditUploadSuccess, onDeleteUpload
             position: upload.newPosition
         }))
 
-        if(!data.length) return 
         try {
+            if(!data.length) return
             await reorderUploadsApi(data)
         } catch (error) {
             console.error('error reordering uplods ', error)
