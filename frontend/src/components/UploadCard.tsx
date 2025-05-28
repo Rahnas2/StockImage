@@ -122,8 +122,12 @@ const UploadCard: React.FC<Props> = ({ upload, onEditUploadSuccess, onDeleteUplo
         <Card className={`group overflow-hidden transition-all duration-200 ${false ? 'ring-2 ring-primary' : ''}`}>
           <CardContent className="p-0 relative">
             {/* Drag handle */}
-            <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <div className="bg-black/50 backdrop-blur-sm p-1.5 rounded-md cursor-move">
+
+            <div
+
+              className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <div
+                className="bg-black/50 backdrop-blur-sm p-1.5 rounded-md cursor-move">
                 <GripVertical className="h-4 w-4 text-white" />
               </div>
             </div>
@@ -132,11 +136,20 @@ const UploadCard: React.FC<Props> = ({ upload, onEditUploadSuccess, onDeleteUplo
               {/* Preview overlay */}
               <div
                 className="absolute inset-0 z-20 cursor-pointer"
-                onClick={() => setIsPreviewDialogOpen(true)}
+              // data-no-dnd="true"
+              // onClick={(e) => {
+              //   e.stopPropagation()
+              //   setIsPreviewDialogOpen(true)
+              // }}
               >
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200 z-10" />
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
-                  <Button size="icon" variant="secondary" className="rounded-full">
+                  <Button size="icon" variant="secondary" className="rounded-full"
+                    data-no-dnd="true"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setIsPreviewDialogOpen(true)
+                    }}>
                     <Maximize className="h-4 w-4" />
                   </Button>
                 </div>
@@ -158,8 +171,10 @@ const UploadCard: React.FC<Props> = ({ upload, onEditUploadSuccess, onDeleteUplo
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
+                  <DropdownMenuContent align="end" data-no-dnd="true">
+                    <DropdownMenuItem onClick={(e) => {
+                      setIsEditDialogOpen(true)
+                    }}>
                       <Pencil className="mr-2 h-4 w-4" />
                       Edit
                     </DropdownMenuItem>

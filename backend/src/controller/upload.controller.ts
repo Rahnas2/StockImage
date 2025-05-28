@@ -35,16 +35,20 @@ export class UploadController {
         try {
             const user = req.user  
 
-            const { title } = req.body       
-            const image = req.file
+            const { titles } = req.body       
 
-            if (!image || !title) {
+            const images = req.files
+
+            console.log('titles ', titles)
+            console.log('images ', req.files)
+
+            if (!images || !titles) {
                 res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'image or title is missing' })
                 return
             }
 
-            const upload = await this.uploadService.createUpload(user as string, title, image)
-            res.status(HttpStatusCode.CREATED).json({ message: 'success', upload })
+            const uploads = await this.uploadService.createUpload(user as string, titles, images as Express.Multer.File[])
+            res.status(HttpStatusCode.CREATED).json({ message: 'success', uploads })
         } catch (error) {
             next(error)
         }
@@ -87,6 +91,7 @@ export class UploadController {
             const { uploads } = req.body
             const user = req.user
 
+            console.log('reordering... ', uploads)
             await this.uploadService.reorderUploads(user as string, uploads)
 
             res.status(HttpStatusCode.OK).json({message: 'success'})   

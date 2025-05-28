@@ -26,9 +26,9 @@ const Home = () => {
     fetchUploads()
   }, [])
 
-  const handleUploadSuccess = async (newUpload: upload) => {
+  const handleUploadSuccess = async (newUploads: upload []) => {
     setIsCreateUpload(false)
-    setUploads(prev => [newUpload, ...prev])
+    setUploads(prev => [...newUploads, ...prev])
   }
 
   const handleDeleteUpload = async (id: string) => {

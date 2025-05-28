@@ -52,6 +52,16 @@ export class uploadRepository implements IUplaodRepository {
         }
     }
 
+    async createMany(data: Partial<Upload> []): Promise<Upload []> {
+        try {
+            const createdDocs =  await uploadModel.insertMany(data)
+            console.log('created docs ', createdDocs)
+            return createdDocs.reverse() as Upload[];
+        } catch (error) {
+            throw new Error('data base error')
+        }
+    }
+
     async findByIdAndUpdate(_id: string, data: Partial<Upload>): Promise<Upload | null> {
         try {
             return await uploadModel.findByIdAndUpdate(_id, data, { new: true })

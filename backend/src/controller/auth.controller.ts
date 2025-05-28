@@ -17,7 +17,7 @@ export class AuthController {
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV  === 'production',
-                sameSite: 'none',
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
                 maxAge: 1 * 24 * 60 * 60 * 1000,
             })
 
@@ -89,7 +89,7 @@ export class AuthController {
 
     refreshToken = async(req: Request, res: Response, next: NextFunction) => {
         try {
-            const refreshToken = req.cookies.refreshToken
+            const refreshToken = req.cookies.refreshToken 
             console.log('refesh token', refreshToken)
             if(!refreshToken) {
                 throw new UnauthorizedError('Unauthorized')

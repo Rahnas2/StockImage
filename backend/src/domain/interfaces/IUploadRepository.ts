@@ -3,6 +3,8 @@ import { Upload } from "../entities/upload";
 
 export interface IUplaodRepository {
     create(data: Partial<Upload>): Promise<Upload>
+    createMany(data: Partial<Upload> []): Promise<Upload []>
+
     findAll(data: Partial<Upload>): Promise<Upload []>
     findById(_id: string): Promise<Upload | null>
     findByUserIdAndTitle(user: string, title: string): Promise<Upload | null>

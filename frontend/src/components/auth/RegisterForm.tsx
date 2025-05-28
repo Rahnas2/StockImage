@@ -35,12 +35,19 @@ const RegisterForm = () => {
 
             //Validation
             const error = validateRegister(data)
-            if(error){
+            if (error) {
                 return toast.error(error)
             }
 
             setIsLoading(true)
             const result = await registerApi(data.name.trim(), data.email.trim(), data.mobile.trim(), data.password.trim())
+            setData({
+                name: '',
+                email: '',
+                mobile: '',
+                password: '',
+                confirmPassword: ''
+            })
             toast.success(result.message)
         } catch (error: any) {
             console.error('error ', error)
@@ -65,6 +72,7 @@ const RegisterForm = () => {
                     <Input type="text"
                         id="name"
                         name="name"
+                        value={data.name}
                         placeholder="example"
                         className='shadow-xs border-gray-400'
                         onChange={handleChange} />
@@ -72,34 +80,34 @@ const RegisterForm = () => {
 
                 <div>
                     <Label htmlFor="email" className="mb-3">Email</Label>
-                    <Input type="email" id="email" name="email" placeholder="example@gmail.com"
+                    <Input type="email" value={data.email} id="email" name="email" placeholder="example@gmail.com"
                         className='shadow-xs border-gray-400'
                         onChange={handleChange} />
                 </div>
 
                 <div>
                     <Label htmlFor="mobile" className="mb-3">Mobile</Label>
-                    <Input type="text" id="mobile" name="mobile" placeholder="0000000000"
+                    <Input type="text" id="mobile" value={data.mobile} name="mobile" placeholder="0000000000"
                         className='shadow-xs border-gray-400'
                         onChange={handleChange} />
                 </div>
 
                 <div>
                     <Label htmlFor="password" className="mb-3">Password</Label>
-                    <Input type="password" id="password" name="password" placeholder=""
+                    <Input type="password" id="password" value={data.password} name="password" placeholder=""
                         className='shadow-xs border-gray-400'
                         onChange={handleChange} />
                 </div>
 
                 <div>
                     <Label htmlFor="confirmPassword" className="mb-3">Confirm Password</Label>
-                    <Input type="password" id="confirmPassword" name="confirmPassword" placeholder=""
+                    <Input type="password" id="confirmPassword" value={data.confirmPassword} name="confirmPassword" placeholder=""
                         className='shadow-xs border-gray-400'
                         onChange={handleChange} />
                 </div>
 
                 <Button disabled={isLoading} onClick={handleSubmit}>
-                    {isLoading ? "loading...": "Create Account"}
+                    {isLoading ? "loading..." : "Create Account"}
                 </Button>
 
             </div>

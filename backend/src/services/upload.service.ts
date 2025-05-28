@@ -1,3 +1,4 @@
+import { title } from "process";
 import { Upload } from "../domain/entities/upload";
 import { uploadRepository } from "../repositories/upload.repository";
 import { CloudinaryService } from "../utils/cloudinayService";
@@ -22,19 +23,42 @@ export class UploadService {
     }
 
 
-    async createUpload(user: string, title: string, file: Express.Multer.File) {
+    async createUpload(user: string, titles: string[], files: Express.Multer.File[]) {
 
-        const existingUpload = await this.uploadRepository.findByUserIdAndTitle(user, title)
-        if (existingUpload) {
-            throw new BadRequestError('already in use')
+        const existingUploads = await Promise.all(
+            titles.map(title => this.uploadRepository.findByUserIdAndTitle(user, title))
+        );
+        const duplicate = existingUploads.find(upload => upload !== null);
+
+        if (duplicate) {
+            const existingNames = existingUploads.filter(up => up !== null).map(up => up.title)
+            const titleList = existingNames.join(', ');
+            const plural = existingNames.length > 1;
+
+            const message = plural
+                ? `The titles "${titleList}" are already in use. Please enter unique titles for each image.`
+                : `The title "${titleList}" is already in use. Please choose a different title.`;
+                
+            throw new BadRequestError(message);
         }
 
         const lastPosition = await this.uploadRepository.getLastPosition(user)
 
-        const { url, publicId } = await this.cloudinaryService.uploadImage(file.buffer, 'uploads')
+        const cloudinaryUploads = await Promise.all(
+            files.map(file => this.cloudinaryService.uploadImage(file.buffer, 'uploads'))
+        )
 
-        const upload = await this.uploadRepository.create({ user, title, image: url, imagePublicId: publicId, position: lastPosition + 1 })
-        return upload
+        const uploadsData = cloudinaryUploads.map((upload, index) => ({
+            user,
+            title: titles[index],
+            image: upload.url,
+            imagePublicId: upload.publicId,
+            position: lastPosition + index + 1
+        }))
+
+        const uploads = await this.uploadRepository.createMany(uploadsData)
+        return uploads
+
     }
 
     async updateUpload(user: string, _id: string, title?: string, file?: Express.Multer.File) {
@@ -57,7 +81,7 @@ export class UploadService {
 
         if (title) {
             const existingUploadByTitle = await this.uploadRepository.findByUserIdAndTitleAndExcludeId(user, title, _id)
-            if(existingUploadByTitle){
+            if (existingUploadByTitle) {
                 throw new ConflictError('already in use')
             }
 
@@ -84,7 +108,7 @@ export class UploadService {
 
     async reorderUploads(user: string, uploads: Partial<Upload>[]) {
         if (uploads.length < 1) {
-            throw new BadRequestError('Uploads array must contain at least one item.');   
+            throw new BadRequestError('Uploads array must contain at least one item.');
         }
 
         const positions = uploads.map(upload => upload.position);

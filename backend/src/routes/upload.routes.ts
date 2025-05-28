@@ -7,7 +7,7 @@ const router = express.Router()
 
 router.route('/')  
 .get(authMiddleware.verifyToken, uploadController.getUploads)
-.post(authMiddleware.verifyToken, upload.single('image'), uploadController.createUpload)
+.post(authMiddleware.verifyToken, upload.array('images'), uploadController.createUpload)
 .put(authMiddleware.verifyToken, upload.single('image'), uploadController.updateUpload)
 .delete(authMiddleware.verifyToken, uploadController.deleteUpload)   
 

@@ -14,9 +14,23 @@ import {
 import React, { useEffect, useState } from "react"
 import UploadCard from "./UploadCard"
 import type { upload } from "@/Types/upload"
-import { Button } from "./ui/button"
 import { ImageIcon } from "lucide-react"
 import { reorderUploadsApi } from '@/services/uploadService'
+
+class CustomPointerSensor extends PointerSensor {
+  static activators = [
+    {
+      eventName: 'onPointerDown' as const,
+      handler: ({ nativeEvent: event }: { nativeEvent: PointerEvent }) => {
+        // Ignore elements with data-no-dnd="true"
+        if ((event.target as HTMLElement).closest('[data-no-dnd="true"]')) {
+          return false;
+        }
+        return true;
+      },
+    },
+  ];
+}
 
 type Props = {
     uploads: upload[]
@@ -29,7 +43,7 @@ const Uploads: React.FC<Props> = ({ uploads, onEditUploadSuccess, onDeleteUpload
 
     const [isSaving, setIsSaving] = useState(false)
 
-    const sensors = useSensors(useSensor(PointerSensor))
+    const sensors = useSensors(useSensor(CustomPointerSensor))
 
     useEffect(() => {
         setOrderedUploads(uploads)
@@ -37,44 +51,71 @@ const Uploads: React.FC<Props> = ({ uploads, onEditUploadSuccess, onDeleteUpload
 
 
 
-    const handleDragEnd = (event: any) => {
+    const handleDragEnd = async (event: any) => {
         const { active, over } = event
 
-        if (active.id !== over.id) {
-            const oldIndex = orderedUploads.findIndex(item => item._id === active.id)
-            const newIndex = orderedUploads.findIndex(item => item._id === over.id)
-            setOrderedUploads(arrayMove(orderedUploads, oldIndex, newIndex))
-        }
-    }
+        if (!over || active.id === over.id) return;
 
-    const handleSaveOrder = async () => {
+        const oldIndex = orderedUploads.findIndex(item => item._id === active.id);
+        const newIndex = orderedUploads.findIndex(item => item._id === over.id);
 
-        setIsSaving(true)
+        const newOrder = arrayMove(orderedUploads, oldIndex, newIndex);
+        setOrderedUploads(newOrder);
 
-        const updatedUploads = orderedUploads
+        // Auto-save immediately after reordering
+        const updatedUploads = newOrder
             .map((upload, index) => ({
                 ...upload,
-                newPosition: (orderedUploads.length - 1 - index)
+                newPosition: (newOrder.length - 1 - index)
             }))
-            .filter((upload) => upload.position !== upload.newPosition)
+            .filter((upload) => upload.position !== upload.newPosition);
 
-        console.log("updated uplodas ", updatedUploads)
+        if (!updatedUploads.length) return;
 
         const data = updatedUploads.map(upload => ({
             _id: upload._id,
             position: upload.newPosition
-        }))
+        }));
 
+        setIsSaving(true);
         try {
-            if(!data.length) return
-            await reorderUploadsApi(data)
+            await reorderUploadsApi(data);
         } catch (error) {
-            console.error('error reordering uplods ', error)
+            console.error('Error reordering uploads', error);
         } finally {
-            setIsSaving(false)
+            setIsSaving(false);
         }
 
     }
+
+    // const handleSaveOrder = async () => {
+
+    //     setIsSaving(true)
+
+    //     const updatedUploads = orderedUploads
+    //         .map((upload, index) => ({
+    //             ...upload,
+    //             newPosition: (orderedUploads.length - 1 - index)
+    //         }))
+    //         .filter((upload) => upload.position !== upload.newPosition)
+
+    //     console.log("updated uplodas ", updatedUploads)
+
+    //     const data = updatedUploads.map(upload => ({
+    //         _id: upload._id,
+    //         position: upload.newPosition
+    //     }))
+
+    //     try {
+    //         if (!data.length) return
+    //         await reorderUploadsApi(data)
+    //     } catch (error) {
+    //         console.error('error reordering uplods ', error)
+    //     } finally {
+    //         setIsSaving(false)
+    //     }
+
+    // }
 
     if (uploads.length === 0) {
         return (
@@ -95,14 +136,14 @@ const Uploads: React.FC<Props> = ({ uploads, onEditUploadSuccess, onDeleteUpload
                     <p className="text-sm text-muted-foreground">
                         Drag and drop images to reorder them
                     </p>
-                    <Button
+                    {/* <Button
                         variant="outline"
                         size="sm"
                         onClick={handleSaveOrder}
                         disabled={isSaving}
                     >
                         {isSaving ? 'Saving...' : 'Save Order'}
-                    </Button>
+                    </Button> */}
                 </div>
             )}
 
@@ -113,10 +154,8 @@ const Uploads: React.FC<Props> = ({ uploads, onEditUploadSuccess, onDeleteUpload
                             <UploadCard
                                 key={upload._id}
                                 upload={upload}
-                                // index={index}
                                 onEditUploadSuccess={onEditUploadSuccess}
                                 onDeleteUploadSuccess={onDeleteUploadSuccess}
-                            // moveCard={moveCard}
                             />
                         ))}
                     </div>
