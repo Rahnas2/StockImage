@@ -191,8 +191,9 @@ const UploadDialog: React.FC<Props> = ({ open, onOpenChange, onUploadSuccess }) 
                                             </div>
 
                                         ))}
-
+                                        
                                         {/* More Uploads  */}
+                                        {uploads.length < 6 ?
                                         <div
                                             className="flex items-center justify-center border-2 border-dashed rounded-md p-4 cursor-pointer hover:bg-gray-50"
                                             onClick={() => document.getElementById('image-input')?.click()}
@@ -201,7 +202,8 @@ const UploadDialog: React.FC<Props> = ({ open, onOpenChange, onUploadSuccess }) 
                                                 <PlusIcon className="h-8 w-8 mb-1" />
                                                 <span className="text-sm">Add more images</span>
                                             </div>
-                                        </div>
+                                        </div> : <></>
+                                        }
 
                                     </div>
                                 </div>
