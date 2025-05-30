@@ -18,18 +18,18 @@ import { ImageIcon } from "lucide-react"
 import { reorderUploadsApi } from '@/services/uploadService'
 
 class CustomPointerSensor extends PointerSensor {
-  static activators = [
-    {
-      eventName: 'onPointerDown' as const,
-      handler: ({ nativeEvent: event }: { nativeEvent: PointerEvent }) => {
-        // Ignore elements with data-no-dnd="true"
-        if ((event.target as HTMLElement).closest('[data-no-dnd="true"]')) {
-          return false;
-        }
-        return true;
-      },
-    },
-  ];
+    static activators = [
+        {
+            eventName: 'onPointerDown' as const,
+            handler: ({ nativeEvent: event }: { nativeEvent: PointerEvent }) => {
+                // Ignore elements with data-no-dnd="true"
+                if ((event.target as HTMLElement).closest('[data-no-dnd="true"]')) {
+                    return false;
+                }
+                return true;
+            },
+        },
+    ];
 }
 
 type Props = {
@@ -40,8 +40,6 @@ type Props = {
 const Uploads: React.FC<Props> = ({ uploads, onEditUploadSuccess, onDeleteUploadSuccess }) => {
 
     const [orderedUploads, setOrderedUploads] = useState(uploads)
-
-    const [isSaving, setIsSaving] = useState(false)
 
     const sensors = useSensors(useSensor(CustomPointerSensor))
 
@@ -77,13 +75,11 @@ const Uploads: React.FC<Props> = ({ uploads, onEditUploadSuccess, onDeleteUpload
             position: upload.newPosition
         }));
 
-        setIsSaving(true);
         try {
             await reorderUploadsApi(data);
         } catch (error) {
             console.error('Error reordering uploads', error);
         } finally {
-            setIsSaving(false);
         }
 
     }

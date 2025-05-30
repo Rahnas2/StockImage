@@ -54,7 +54,7 @@ const UploadDialog: React.FC<Props> = ({ open, onOpenChange, onUploadSuccess }) 
         e.preventDefault()
         const formData = new FormData()
 
-        uploads.forEach((upload, index) => {
+        uploads.forEach((upload) => {
             formData.append(`titles`, upload.title.trim())
             formData.append(`images`, upload.image)
         });

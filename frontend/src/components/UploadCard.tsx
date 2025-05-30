@@ -172,7 +172,7 @@ const UploadCard: React.FC<Props> = ({ upload, onEditUploadSuccess, onDeleteUplo
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" data-no-dnd="true">
-                    <DropdownMenuItem onClick={(e) => {
+                    <DropdownMenuItem onClick={() => {
                       setIsEditDialogOpen(true)
                     }}>
                       <Pencil className="mr-2 h-4 w-4" />
